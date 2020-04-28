@@ -27,6 +27,7 @@ const CustomButton = styled(Button)({
 const AuthData = (props)=>{
     const [emailInputState, setEmailInputState] = useState(emailInitialState);
     const [emailValidationError, setEmailValidationError] = useState({error: false, errorText:''});
+    const [passwordValidationError, setPasswordValidationError] = useState({error: false, errorText:''});
     const [currentStep, setCurrentStep] = useState('email');
 
     const validateField = (fieldName, value) =>{
@@ -49,26 +50,52 @@ const AuthData = (props)=>{
         };
     };
 
-    const CustomInputHandler = (event) => {
+    const CustomInputChangeHandler = (event) => {
         validateField(event.target.name, event.target.value);
     };
-    
+   
+    const InputElement = () => {
+        let input = null;
+        switch (currentStep){
+            case 'email': 
+                input = (<CustomInput
+                            variant='standard'
+                            name = 'email'
+                            label="email"
+                            autoFocus
+                            fullWidth
+                            disableUnderline
+                            type = "email"
+                            inputProps={{ 'aria-label': 'description' }}
+                            error = {emailValidationError.error} 
+                            onChange = {CustomInputChangeHandler}
+                            aria-describedby="component-error-text"/>);
+                break;
+            case 'password':
+                input =  (<CustomInput
+                            variant='standard'
+                            name = 'password'
+                            label="password"
+                            autoFocus
+                            fullWidth
+                            disableUnderline
+                            type = "password"
+                            inputProps={{ 'aria-label': 'description' }}
+                            error = {passwordValidationError.error} 
+                            onChange = {CustomInputChangeHandler}
+                            aria-describedby="component-error-text"/>);
+                break;
+            default:
+                break;
+        };
+
+        
+
+    };
 
     
     return (
         <div className='AuthData'>
-            <CustomInput
-                variant='standard'
-                name = 'email'
-                label="email"
-                autoFocus
-                fullWidth
-                disableUnderline
-                type = "email"
-                inputProps={{ 'aria-label': 'description' }}
-                error = {emailValidationError.error} 
-                onChange = {CustomInputHandler}
-                aria-describedby="component-error-text"/>
             {emailValidationError.error ? 
                 <FormHelperText id="component-error-text">{emailValidationError.errorText}</FormHelperText>
                 : ''}
