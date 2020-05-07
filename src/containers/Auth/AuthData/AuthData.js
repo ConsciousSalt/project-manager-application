@@ -1,106 +1,151 @@
 import React, {useState} from 'react';
 
-import {styled} from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
+import {CustomTextField, CustomButton} from '../../../components/UI/CustomStyledUI/customStyledUI';
 import FormHelperText from '@material-ui/core/FormHelperText';
 
+import {checkValidity, updateObject} from '../../../shared/utility';
 import './AuthData.css';
 
-const emailInitialState = { valid: false,
-                            validationErros: ''
-                            };
+const emailInitialState = { rules: {required: true, isEmail: true} ,
+                                value: "",
+                                touched: false};
 
-const CustomInput = styled(TextField)({
-    background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 100%), linear-gradient(173.72deg, rgba(196, 196, 196, 0.75) 5.83%, rgba(196, 196, 196, 0.589844) 83.56%, rgba(196, 196, 196, 0) 122.42%)',
-    width: '80%'
-});
+const passwordInitialState = { rules: {required: true, minLength: 5},
+                                value: "",
+                                touched: false};                        
+const InputInitialValidationState = {error: false, errorMessage: ""};
 
-const CustomButton = styled(Button)({
-    background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 100%), linear-gradient(173.72deg, rgba(196, 196, 196, 0.75) 5.83%, rgba(196, 196, 196, 0.589844) 83.56%, rgba(196, 196, 196, 0) 122.42%)',
-    height: '100%',
-    borderRadius: '0',
-    padding: '3%'  
-});
+const enteringDataStages = {
+                                    EMAIL: 'EMAIL',
+                                    PASSWORD: 'PASSWORD',
+                                    FINISH: 'FINISH'
+                                };
+
 
 
 const AuthData = (props)=>{
-    const [emailInputState, setEmailInputState] = useState(emailInitialState);
-    const [emailValidationError, setEmailValidationError] = useState({error: false, errorText:''});
-    const [passwordValidationError, setPasswordValidationError] = useState({error: false, errorText:''});
-    const [currentStep, setCurrentStep] = useState('email');
-
-    const validateField = (fieldName, value) =>{
-        switch (fieldName) {
-            case ('email'):
-                console.log(value);
-                const fieldIsValid = value.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i) !== null;
-                const validationErros = fieldIsValid ? '': 'not valid email'; 
-                const updatedState = {
-                    valid: fieldIsValid,
-                    validationErros: validationErros                    
-                };
-                setEmailInputState(updatedState);    
-                break;
-            case ('password'):
-                fieldIsValid = false;
-                break;
-            default:
-                break;    
-        };
+    const [emailInputState          , setEmailInputState]           = useState(emailInitialState);
+    const [passwordInputState       , setPasswordInputState]        = useState(passwordInitialState);
+    const [InputValidationError     , setInputValidationError]      = useState(InputInitialValidationState);
+    const [currentStage             , setCurrentStage]              = useState(enteringDataStages.EMAIL);
+    const [nextStepEnable           , setNextStepEnable]            = useState(false);
+    const [loading                  , setLoadingState]              = useState(false);
+   
+    const validateEmail = () => {
+        setLoadingState(true);
+        setTimeout(()=>{
+            const test = "somemail@mail.com";
+            if (emailInputState.value !== test){
+                setInputValidationError(updateObject(InputInitialValidationState, {
+                                                        error: true, 
+                                                        errorMessage: "Entered incorrect email: check it and try again"
+                                                    }));
+                setCurrentStage(enteringDataStages.EMAIL);
+            }else{
+                setInputValidationError(updateObject(InputInitialValidationState, {
+                                                        error: false, 
+                                                        errorMessage: ""
+                                                    }));
+                setCurrentStage(enteringDataStages.PASSWORD);
+            };
+            setLoadingState(false);
+        },2000);
+    };
+   
+    const validatePassword = () => {
+        setLoadingState(true);
+        setTimeout(()=>{
+            const test = "qwerty11";
+            if (passwordInputState.value !== test){
+                setInputValidationError(updateObject(InputInitialValidationState, {
+                                                        error: true, 
+                                                        errorMessage: "Entered incorrect password: check it and try again"
+                                                    }));
+                setCurrentStage(enteringDataStages.PASSWORD);
+            }else{
+                setInputValidationError(updateObject(InputInitialValidationState, {
+                                                        error: false, 
+                                                        errorMessage: ""
+                                                    }));
+                setCurrentStage(enteringDataStages.FINISH);
+            };
+            setLoadingState(false);
+        },2000);
     };
 
     const CustomInputChangeHandler = (event) => {
-        validateField(event.target.name, event.target.value);
-    };
-   
-    const InputElement = () => {
-        let input = null;
-        switch (currentStep){
-            case 'email': 
-                input = (<CustomInput
-                            variant='standard'
-                            name = 'email'
-                            label="email"
-                            autoFocus
-                            fullWidth
-                            disableUnderline
-                            type = "email"
-                            inputProps={{ 'aria-label': 'description' }}
-                            error = {emailValidationError.error} 
-                            onChange = {CustomInputChangeHandler}
-                            aria-describedby="component-error-text"/>);
+
+        switch (currentStage) {
+            case enteringDataStages.EMAIL:
+                const newEmailState = updateObject(emailInputState, {value: event.target.value, touched: true});
+                setEmailInputState(newEmailState);
+                setNextStepEnable(checkValidity(event.target.value, emailInputState.rules));
                 break;
-            case 'password':
-                input =  (<CustomInput
-                            variant='standard'
-                            name = 'password'
-                            label="password"
-                            autoFocus
-                            fullWidth
-                            disableUnderline
-                            type = "password"
-                            inputProps={{ 'aria-label': 'description' }}
-                            error = {passwordValidationError.error} 
-                            onChange = {CustomInputChangeHandler}
-                            aria-describedby="component-error-text"/>);
+            case enteringDataStages.PASSWORD:
+                const newPasswordState = updateObject(passwordInputState, {value: event.target.value, touched: true});
+                setPasswordInputState(newPasswordState);
+                setNextStepEnable(checkValidity(event.target.value, passwordInputState.rules));
                 break;
             default:
                 break;
         };
+    };
 
-        
+    const buttonOnClickHandler = () => {
+        switch (currentStage) {
+            case enteringDataStages.EMAIL:
+                validateEmail();
+                break;
+            case enteringDataStages.PASSWORD:
+                validatePassword();
+                break;
+            case enteringDataStages.FINISH:
+                console.log("redirected");
+                break;            
+            default:
+                break;
+        }
+    };
 
+    const InputElement = () => {
+        const inputType = (currentStage === enteringDataStages.FINISH ? 'input' : currentStage.toLowerCase());
+        let inputValue = "";
+        if (currentStage === enteringDataStages.EMAIL){
+            inputValue = emailInputState.value;
+        }else if (currentStage === enteringDataStages.PASSWORD){
+            inputValue = passwordInputState.value;
+        }else{
+            return (<div><h1>Congratulations</h1></div>);
+        };
+
+        return (
+            <React.Fragment>
+                <CustomTextField
+                    variant='standard'
+                    autoFocus
+                    fullWidth
+                    inputProps={{ 'aria-label': 'description' }}
+                    aria-describedby="component-error-text"
+                    type  = {inputType}
+                    name  = {inputType}
+                    label = {inputType}
+                    error = {InputValidationError.error}
+                    value = {inputValue} 
+                    onChange = {CustomInputChangeHandler}/> 
+                <CustomButton 
+                    variant="text" 
+                    disabled={!nextStepEnable}
+                    onClick={buttonOnClickHandler}>
+                    {loading? "Loading..." : "OK" }    
+                </CustomButton>   
+            </React.Fragment>);
     };
 
     
     return (
         <div className='AuthData'>
-            {emailValidationError.error ? 
-                <FormHelperText id="component-error-text">{emailValidationError.errorText}</FormHelperText>
-                : ''}
-            
-            <CustomButton variant="text">OK</CustomButton>
+            {InputElement()}
+            {InputValidationError.error ? <FormHelperText id="component-error-text">{InputValidationError.errorMessage}</FormHelperText> : ''}
         </div>
     );
 };
