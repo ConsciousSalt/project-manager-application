@@ -1,38 +1,37 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import {createStore} from 'redux';
+import {createStore, applyMiddleware, compose, combineReducers} from 'redux';
+import {Provider} from 'react-redux';
+import thunk from 'redux-thunk';
 
-import * as authActions from './containers/Auth/AuthData/actions';
-import authData from './containers/Auth/AuthData/reducers';
+import authReducer from './storage/reducers/auth';
 
 import './index.css';
 import App from './App';
 
 import * as serviceWorker from './serviceWorker';
 
-const store = createStore(authData, window.STATE_FROM_SERVER);
+//for development purpose - to display correctly in extention
+const composeEnhancers = process.env.NODE_ENV === 'development' ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ : null || compose;
 
-console.log(store.getState());
+const rootReducer = combineReducers({
+  auth: authReducer
+});
 
-const unsubscribe = store.subscribe(()=>console.log(store.getState()));
+const appStore = createStore(
+  rootReducer,
+  composeEnhancers(applyMiddleware(thunk))
+);
 
-//Dispatch some actions
-store.dispatch(authActions.enterDataBegin());
-store.dispatch(authActions.enteringData(authActions.enteringDataStages.EMAIL,"somemail@mail.ru"));
-store.dispatch(authActions.enterDataEnd(authActions.enteringDataStages.EMAIL,{error:false, errorMessage: ""}));
-
-store.dispatch(authActions.enterDataBegin());
-store.dispatch(authActions.enteringData(authActions.enteringDataStages.PASSWORD, "qwerty"));
-store.dispatch(authActions.enterDataEnd(authActions.enteringDataStages.PASSWORD, {error: true, errorMessage: "Password invalid"}))
-
-unsubscribe();
-
-ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  document.getElementById('root')
+const app = (
+    <Provider store={appStore}>
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>
+    </Provider>
+);
+ReactDOM.render(app, document.getElementById('root')
 );
 
 // If you want your app to work offline and load faster, you can change

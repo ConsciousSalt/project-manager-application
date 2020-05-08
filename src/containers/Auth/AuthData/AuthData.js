@@ -1,5 +1,8 @@
 import React, {useState} from 'react';
 
+import {connect} from 'react-redux';
+import * as actions from '../../../storage/actions/auth';
+
 import {CustomTextField, CustomButton} from '../../../components/UI/CustomStyledUI/customStyledUI';
 import FormHelperText from '@material-ui/core/FormHelperText';
 
@@ -12,9 +15,7 @@ const emailInitialState = { rules: {required: true, isEmail: true} ,
 
 const passwordInitialState = { rules: {required: true, minLength: 5},
                                 value: "",
-                                touched: false};                        
-const InputInitialValidationState = {error: false, errorMessage: ""};
-
+                                touched: false};                       
 const enteringDataStages = {
                                     EMAIL: 'EMAIL',
                                     PASSWORD: 'PASSWORD',
@@ -26,56 +27,11 @@ const enteringDataStages = {
 const AuthData = (props)=>{
     const [emailInputState          , setEmailInputState]           = useState(emailInitialState);
     const [passwordInputState       , setPasswordInputState]        = useState(passwordInitialState);
-    const [InputValidationError     , setInputValidationError]      = useState(InputInitialValidationState);
-    const [currentStage             , setCurrentStage]              = useState(enteringDataStages.EMAIL);
     const [nextStepEnable           , setNextStepEnable]            = useState(false);
-    const [loading                  , setLoadingState]              = useState(false);
-   
-    const validateEmail = () => {
-        setLoadingState(true);
-        setTimeout(()=>{
-            const test = "somemail@mail.com";
-            if (emailInputState.value !== test){
-                setInputValidationError(updateObject(InputInitialValidationState, {
-                                                        error: true, 
-                                                        errorMessage: "Entered incorrect email: check it and try again"
-                                                    }));
-                setCurrentStage(enteringDataStages.EMAIL);
-            }else{
-                setInputValidationError(updateObject(InputInitialValidationState, {
-                                                        error: false, 
-                                                        errorMessage: ""
-                                                    }));
-                setCurrentStage(enteringDataStages.PASSWORD);
-            };
-            setLoadingState(false);
-        },2000);
-    };
-   
-    const validatePassword = () => {
-        setLoadingState(true);
-        setTimeout(()=>{
-            const test = "qwerty11";
-            if (passwordInputState.value !== test){
-                setInputValidationError(updateObject(InputInitialValidationState, {
-                                                        error: true, 
-                                                        errorMessage: "Entered incorrect password: check it and try again"
-                                                    }));
-                setCurrentStage(enteringDataStages.PASSWORD);
-            }else{
-                setInputValidationError(updateObject(InputInitialValidationState, {
-                                                        error: false, 
-                                                        errorMessage: ""
-                                                    }));
-                setCurrentStage(enteringDataStages.FINISH);
-            };
-            setLoadingState(false);
-        },2000);
-    };
 
     const CustomInputChangeHandler = (event) => {
 
-        switch (currentStage) {
+        switch (props.currentStage) {
             case enteringDataStages.EMAIL:
                 const newEmailState = updateObject(emailInputState, {value: event.target.value, touched: true});
                 setEmailInputState(newEmailState);
@@ -92,27 +48,24 @@ const AuthData = (props)=>{
     };
 
     const buttonOnClickHandler = () => {
-        switch (currentStage) {
+        switch (props.currentStage) {
             case enteringDataStages.EMAIL:
-                validateEmail();
+                props.onFetchingEmail(emailInputState.value);
                 break;
             case enteringDataStages.PASSWORD:
-                validatePassword();
-                break;
-            case enteringDataStages.FINISH:
-                console.log("redirected");
-                break;            
+                props.onAuth(emailInputState.value, passwordInputState.value, props.isSignUp);
+                break;          
             default:
                 break;
         }
     };
 
     const InputElement = () => {
-        const inputType = (currentStage === enteringDataStages.FINISH ? 'input' : currentStage.toLowerCase());
+        const inputType = (props.currentStage === enteringDataStages.FINISH ? 'input' : props.currentStage.toLowerCase());
         let inputValue = "";
-        if (currentStage === enteringDataStages.EMAIL){
+        if (props.currentStage === enteringDataStages.EMAIL){
             inputValue = emailInputState.value;
-        }else if (currentStage === enteringDataStages.PASSWORD){
+        }else if (props.currentStage === enteringDataStages.PASSWORD){
             inputValue = passwordInputState.value;
         }else{
             return (<div><h1>Congratulations</h1></div>);
@@ -129,14 +82,14 @@ const AuthData = (props)=>{
                     type  = {inputType}
                     name  = {inputType}
                     label = {inputType}
-                    error = {InputValidationError.error}
+                    error = {props.error}
                     value = {inputValue} 
                     onChange = {CustomInputChangeHandler}/> 
                 <CustomButton 
                     variant="text" 
                     disabled={!nextStepEnable}
                     onClick={buttonOnClickHandler}>
-                    {loading? "Loading..." : "OK" }    
+                    {props.loading? "Loading..." : "OK" }    
                 </CustomButton>   
             </React.Fragment>);
     };
@@ -145,9 +98,27 @@ const AuthData = (props)=>{
     return (
         <div className='AuthData'>
             {InputElement()}
-            {InputValidationError.error ? <FormHelperText id="component-error-text">{InputValidationError.errorMessage}</FormHelperText> : ''}
+            {props.error ? <FormHelperText id="component-error-text">{props.error.message}</FormHelperText> : null}
         </div>
     );
 };
 
-export default AuthData;
+const mapStateToProps = state => {
+    return {
+        loading: state.auth.loading,
+        error: state.auth.error,
+        isSignUp: state.auth.isSignUp,
+        isAuthenticated: state.auth.token !== null,
+        authToken: state.auth.token,
+        currentStage: state.auth.authStage
+    };
+};
+
+const mapDispatchToProps = dispatch => {
+    return {
+        onFetchingEmail: (email) => dispatch(actions.fetchAuthForEmail(email)),
+        onAuth: (email, password, signUp) => dispatch(actions.auth(email, password, signUp))
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(AuthData);
