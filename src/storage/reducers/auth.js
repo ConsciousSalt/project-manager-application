@@ -55,11 +55,16 @@ const fetchEmailFail = (state, action) => {
         loading:    false});   
 }
 
+const fetchEmailReEnter = (state) => {
+    return updateObject(state, {authStage: actionsTypes.authStages.EMAIL, isSignUp: false});
+}
+
 const reducer = (state = initialState, action) => {
     switch (action.type) {
         case actionsTypes.FETCH_EMAIL_START: return fetchEmailStart(state, action);
         case actionsTypes.FETCH_EMAIL_SUCCESS: return fetchEmailSuccess(state, action);
         case actionsTypes.FETCH_EMAIL_FAIL: return fetchEmailFail(state, action);
+        case actionsTypes.FETCH_EMAIL_RE_ENTER: return fetchEmailReEnter(state);
         case actionsTypes.AUTH_START: return authStart(state, action);
         case actionsTypes.AUTH_SUCCESS: return authSuccess(state, action);
         case actionsTypes.AUTH_FAIL: return authFail(state, action);

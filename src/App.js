@@ -1,10 +1,12 @@
 import React from 'react';
-import {BrowserRouter as Router, Link, Switch, Route} from 'react-router-dom';
+import {BrowserRouter as Router, Switch, Route} from 'react-router-dom';
 
 import Layout from './containers/Layout/Layout';
 
+import Navigation from './components/Navigation/Navigation';
 import Main from './containers/Main/Main';
 import Auth from './containers/Auth/Auth';
+import Logout from './containers/Auth/Logout';
 import OrderList from './containers/Orders/OrderList/OrderList';
 
 function App() {
@@ -12,33 +14,16 @@ function App() {
     <Router>
       <Layout>
       <React.Fragment>
-        <header>
-            <nav>
-                <ul>
-                    <li>
-                        <Link to="/">
-                            Home
-                        </Link>
-                    </li>
-                    <li>
-                        <Link to="/orders">
-                            Orders
-                        </Link>
-                    </li>
-                    <li>
-                        <Link to="/auth">
-                            Log in
-                        </Link>
-                    </li>
-                </ul>
-            </nav>
-          </header>
+          <Navigation/>
           <Switch>
             <Route path="/orders">
               <OrderList/>
             </Route>
             <Route path="/auth">
               <Auth/>
+            </Route>
+            <Route path="/logout">
+              <Logout/>
             </Route>
             <Route path="/" strict>
               <Main/>

@@ -101,4 +101,10 @@ export const fetchAuthForEmail = (email) => {
                 dispatch(fetchAuthError(err.response.data.error))
             });
     };
-}
+};
+
+export const authStepBack = () =>{
+    return (dispatch) => {
+        dispatch({type: actionTypes.FETCH_EMAIL_RE_ENTER});
+    };
+};
