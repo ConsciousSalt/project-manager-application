@@ -1,0 +1,8 @@
+.MainMenu{
+    position: absolute;
+    left: 0;
+    top: 5%;
+    width: 25%;
+    height: 95%;
+    background-color: crimson;
+}

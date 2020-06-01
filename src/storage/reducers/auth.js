@@ -32,7 +32,7 @@ const authFail = (state, action) => {
 };
 
 const authLogout = (state, action) => {
-    return updateObject(state, {token: null,userId: null, authStage: actionsTypes.authStages.EMAIL});
+    return updateObject(state, {token: null,userId: null, isSignUp: false, authStage: actionsTypes.authStages.EMAIL});
 }
 
 const fetchEmailStart = (state, action) => {

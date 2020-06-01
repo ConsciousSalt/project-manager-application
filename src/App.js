@@ -1,38 +1,71 @@
+import {useEffect} from 'react';
+
 import React from 'react';
 import {BrowserRouter as Router, Switch, Route} from 'react-router-dom';
 
+import CssBaseline from '@material-ui/core/CssBaseline';
+import Typography from '@material-ui/core/Typography';
+import Paper from '@material-ui/core/Paper'
+
+import {connect} from 'react-redux';
+import * as actions from './storage/actions/auth';
+
 import Layout from './containers/Layout/Layout';
 
-import Navigation from './components/Navigation/Navigation';
+import TopBar from './components/TopBar/TopBar';
 import Main from './containers/Main/Main';
-import Auth from './containers/Auth/Auth';
 import Logout from './containers/Auth/Logout';
 import OrderList from './containers/Orders/OrderList/OrderList';
 
-function App() {
-  return (
-    <Router>
-      <Layout>
+function App(props) {
+  useEffect(() => {
+    props.onTryAutoSignup()
+  },[]);
+
+  let authRoutes = null;
+  if (props.isAuthenticated){
+    authRoutes = (
       <React.Fragment>
-          <Navigation/>
-          <Switch>
-            <Route path="/orders">
-              <OrderList/>
-            </Route>
-            <Route path="/auth">
-              <Auth/>
-            </Route>
-            <Route path="/logout">
-              <Logout/>
-            </Route>
-            <Route path="/" strict>
-              <Main/>
-            </Route>
-          </Switch>
-        </React.Fragment>
-      </Layout>
-    </Router>
+        <Route path="/orders">
+          <OrderList/>        
+        </Route>
+        <Route path="/logout">
+          <Logout/>        
+        </Route>
+      </React.Fragment>
+    );
+  };
+
+  return (
+    <React.Fragment>
+      <CssBaseline/>
+      <Router>
+        <Paper>
+          <Typography variant='caption' display='block' align='center' gutterBottom>Project Manager Application</Typography>     
+            <TopBar/>
+            <Switch>
+              {authRoutes}
+              <Route path="/" strict>
+                <Main isAuthenticated={props.isAuthenticated}/>
+              </Route>
+            </Switch>
+        </Paper> 
+      </Router>
+    </React.Fragment>
   );
 }
 
-export default App;
+const mapStateToProps = (state) => {
+  return {
+      isAuthenticated: state.auth.token !== null
+  }
+}
+
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    onTryAutoSignup: ()=>{dispatch(actions.authCheckState())} 
+  }  
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);

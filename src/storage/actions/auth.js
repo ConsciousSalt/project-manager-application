@@ -46,6 +46,26 @@ export const checkAuthTimeout = (expirationTime)  => {
     };
 };
 
+export const authCheckState = () => {
+    console.log('authCheckState');
+    return (dispatch) => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            dispatch(logout());
+        }else{
+            const userId = localStorage.getItem('userId');
+            const expirationDate = new Date(localStorage.getItem('expirationDate'));
+            if (expirationDate > new Date()) {
+                dispatch(authSuccess(token, userId));
+                const expiresIn = (expirationDate.getTime() - new Date().getTime())/1000;
+                dispatch(checkAuthTimeout(expiresIn));
+            }else{
+                dispatch(logout());
+            };
+        };
+    };
+};
+
 export const auth = (email, password, isSignUp) => {
     return (dispatch) => {
         dispatch(authStart());

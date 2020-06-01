@@ -1,0 +1,12 @@
+.TopBar{
+    height: 5%;
+}
+
+.TopBar nav {
+    height: 100%;
+    background-color: aqua;
+}
+
+.TopBar nav ul {
+    background-color: transparent;
+}
